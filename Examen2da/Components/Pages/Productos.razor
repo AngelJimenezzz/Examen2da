@@ -39,7 +39,6 @@
             </div>
         </InputRadioGroup>
     </div>
-
     @if (!string.IsNullOrEmpty(_error))
     {
         <div class="alert alert-danger">@_error</div>
@@ -115,6 +114,7 @@
     private string? _error;
     private bool _modoEdicion = false;
     private bool _vistaResumen = false;
+    private int _inventarioOriginal; // Nuevo: para identificar producto en edición
 
     private void GuardarProducto()
     {
@@ -122,12 +122,20 @@
 
         if (_modoEdicion)
         {
-            var prod = _productos.FirstOrDefault(p => p.NumeroInventario == _producto.NumeroInventario);
+            if (_productos.Any(p => p.NumeroInventario == _producto.NumeroInventario && p.NumeroInventario != _inventarioOriginal))
+            {
+                _error = "¡El número de inventario ya está registrado!";
+                return;
+            }
+
+            var prod = _productos.FirstOrDefault(p => p.NumeroInventario == _inventarioOriginal);
             if (prod != null)
             {
+                prod.NumeroInventario = _producto.NumeroInventario;
                 prod.Nombre = _producto.Nombre;
                 prod.Departamento = _producto.Departamento;
             }
+
             _modoEdicion = false;
         }
         else
@@ -157,6 +165,7 @@
                 Nombre = p.Nombre,
                 Departamento = p.Departamento
             };
+        _inventarioOriginal = p.NumeroInventario; // Guardamos el número original
         _modoEdicion = true;
         _error = null;
     }
